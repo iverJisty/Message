@@ -24,13 +24,17 @@ class Server():
 		self.srv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.srv_sock.bind(address)
 		self.srv_sock.listen(50)
-		self.mailbox = []
+		self.mailbox = {}
+		
 		self.registered_user = { 
 			"ken" : "12345",
 			"jane" : "23456",
 			"john" : "zxcvb",
 			"sandy" : "xcvbn"
 		}
+		for k in self.registered_user:
+			self.mailbox[k] = "";
+
 		self.current_users = []
 
 	def identify_user(self,user,conn):
@@ -80,7 +84,7 @@ if __name__ == '__main__':
 				receive_data = s.recv(4096)
 				if receive_data == b'':
 					print("Client {} disconnect".format(client_addr))
-					trace.remove(s)
+					#trace.remove(s)
 						
 				else:
 					mesg = json.loads(receive_data.decode('UTF-8'))
@@ -89,7 +93,7 @@ if __name__ == '__main__':
 						user = mesg['user']
 						passwd = mesg['pass']
 						if user in serv.registered_user and serv.registered_user[user] == passwd:
-							send_msg = { "type":"login","from":"Server", "msg":"Login Success"}
+							send_msg = { "type":"login","from":"Server", "msg":"Login Success" , "mailbox": serv.mailbox[user] }
 							serv.current_users.append((user,conn))
 							
 						else :
@@ -109,8 +113,10 @@ if __name__ == '__main__':
 									
 								if sendto == False:		# add timestamp if leave a message
 									send_msg['time'] = strftime("%Y-%m-%d %H:%M:%S")
-									serv.mailbox[msg['sendto']] = send_msg
-								sendto.send( json.dumps(send_msg).encode('UTF-8') )
+									serv.mailbox[mesg['sendto']] = send_msg
+								else:
+									sendto.send( json.dumps(send_msg).encode('UTF-8') )
+
 							else:
 								send_msg = { "type":"error", "from":"Server", "msg":"User " + mesg['sendto']+" current not available" }
 								s.send( json.dumps(send_msg).encode('UTF-8'))

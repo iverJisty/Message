@@ -48,14 +48,21 @@ if __name__ == '__main__':
 		read,write,excp = select.select( trace, [], [] ,0 )
 
 		for s in read:
-			print(">")
 			if s is client.cli_sock:	# get message from server
 				data = json.loads(s.recv(4096).decode('UTF-8'))
 				if data['type'] == 'login' and data['from'] == 'Server':
 					if data['msg'] == 'Login Success':
-						print(data['msg'])
+						mail = data['mailbox']
+						print("{}".format(data['msg']))
+						if mail != '':
+							print("You got mail")
+#print(mail)
+#mail = json.loads(mail)
+							print("Mail from {} : {} ".format(mail['from'],mail['msg'])	)
+						
+
 						login_success = True
-						print("chat > ",end='')
+						print("chat > ")
 					elif data['msg'] == 'Login Failed':
 						print(data['msg'])
 						login_success = False
